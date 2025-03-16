@@ -2,6 +2,9 @@ package com.reservation.dto;
 
 import java.time.LocalDateTime;
 
+import com.reservation.type.UserType;
+
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,24 +14,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-public class DeleteUser {
+public class UpdateUserPartnership {
 	@Getter
 	@Setter
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class Request {
 		@NotNull
-        private Long id;
+		private Long id;
+
+		@NotBlank
+		@Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
+		private String password;
+
+		@NotNull
+		private UserType userType;
 		
-	    @NotBlank
-	    @Size(min = 5, max = 20)
-	    private String userId;
-	    
-	    @NotBlank
-	    @Size(min = 8)
-	    private String password;
+		@NotNull
+		private boolean isPartner;
 	}
-	
+
 	@Getter
 	@Setter
 	@NoArgsConstructor
@@ -36,15 +41,17 @@ public class DeleteUser {
 	@Builder
 	public static class Response {
 		private Long id;
-		private String userId;
-		private LocalDateTime deletedAt;
+		private String password;
+		private UserType userType;
+		private LocalDateTime createdAt;
+		private boolean isPartner;
 
 		public static Response from(UserDto userDto) {
-			return Response.builder()
-					.id(userDto.getId())
-					.userId(userDto.getUserId())
-					.deletedAt(userDto.getCreatedAt())
+			return Response.builder().id(userDto.getId())
+					.userType(userDto.getUserType()).isPartner(userDto.isPartner()).createdAt(userDto.getCreatedAt())
 					.build();
 		}
+
 	}
+
 }

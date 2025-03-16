@@ -1,13 +1,26 @@
 package com.reservation.service;
 
+import static com.reservation.type.ErrorCode.CANNOT_CREATE_ADMIN;
+import static com.reservation.type.ErrorCode.EMAIL_ALREADY_IN_USE;
+import static com.reservation.type.ErrorCode.PASSWORD_UNMATCHED;
+import static com.reservation.type.ErrorCode.USERID_ALREADY_IN_USE;
+import static com.reservation.type.ErrorCode.USERTYPE_NOT_OWNER;
+import static com.reservation.type.ErrorCode.USER_NOT_FOUND;
+
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.reservation.domain.User;
 import com.reservation.dto.CreateUser;
 import com.reservation.dto.DeleteUser;
+import com.reservation.dto.UpdateUser;
+import com.reservation.dto.UpdateUserPartnership;
 import com.reservation.dto.UserDto;
+import com.reservation.exception.UserException;
 import com.reservation.repository.UserRepository;
+import com.reservation.type.ErrorCode;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +35,23 @@ public class UserService {
 	
 	@Transactional
 	public User createUser(CreateUser.Request request) {
+		
 		if(userRepository.existsByUserId(request.getUserId())) {
-			throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
+			throw new UserException(USERID_ALREADY_IN_USE);
 		}
+		
 		if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new UserException(EMAIL_ALREADY_IN_USE);
         }
+		
+		if(userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+			throw new UserException(ErrorCode.PHONE_NUMBER_ALREADY_IN_USE);
+		}
+		
+		// 관리자 계정으로는 생성 불가
+	    if(request.getUserType().equals("ADMIN")) {
+	    	throw new UserException(CANNOT_CREATE_ADMIN);
+	    }
 		
 		User user = User.builder()
                 .userId(request.getUserId())
@@ -35,6 +59,7 @@ public class UserService {
                 .nickname(request.getNickname())
                 .email(request.getEmail())
                 .userType(request.getUserType())
+                .phoneNumber(request.getPhoneNumber())
                 .build();
 		
 		return userRepository.save(user);
@@ -42,11 +67,11 @@ public class UserService {
 	
 	@Transactional
 	public DeleteUser.Response deleteUser(DeleteUser.Request request) {
-		User user = userRepository.findByUserId(request.getUserId()).orElseThrow(()->new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+		User user = userRepository.findById(request.getId()).orElseThrow(()-> new UserException(USER_NOT_FOUND));
 	    
 		// 비밀번호 확인
 	    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-	        throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+	        throw new UserException(PASSWORD_UNMATCHED);
 	    }
 	    
 	    userRepository.delete(user);
@@ -55,5 +80,72 @@ public class UserService {
 	
 	}
 	
+	/*
+	 * 비밀번호, 닉네임, 유저타입(점주, 일반)만 변경
+	 */
+	@Transactional
+	public User updateUser(UpdateUser.Request request) {
+		User user = userRepository.findById(request.getId()).orElseThrow(()->new UserException(USER_NOT_FOUND));
+		
+		// 비밀번호 확인
+	    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+	        throw new UserException(PASSWORD_UNMATCHED);
+	    }
+		// 관리자 계정으로는 생성 불가
+	    if(request.getUserType().equals("ADMIN")) {
+	    	throw new UserException(CANNOT_CREATE_ADMIN);
+	    }
+	    
+		user.setEmail(request.getEmail());
+		user.setNickname(request.getNickname());
+		user.setUserType(request.getUserType());
+		user.setPhoneNumber(request.getPhoneNumber());
+		
+	    // 비밀번호가 변경되었을 경우만 암호화하여 업데이트
+	    if (!request.getPassword().equals(user.getPassword())) {
+	        user.setPassword(passwordEncoder.encode(request.getPassword()));
+	    }
+		
+		return user;
+	}
 	
+	/*
+	 * 비밀번호 확인 후 파트너 여부 변경
+	 */
+	@Transactional
+	public User updateIsPartner(UpdateUserPartnership.Request request) {
+		User user = userRepository.findById(request.getId()).orElseThrow(()->new UserException(USER_NOT_FOUND));
+		
+		if(!user.getUserType().equals("OWNER")) {
+			throw new UserException(USERTYPE_NOT_OWNER);
+		}
+		
+		// 비밀번호 확인
+	    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+	        throw new UserException(PASSWORD_UNMATCHED);
+	    }
+	    
+	    
+	    user.setPartner(true);
+	    
+		return user;
+	}
+	
+    // 사용자 인증(이메일, 비밀번호)
+    public User validateUser(String email, String password) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            throw new UserException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        User user = userOptional.get();
+
+        // 비밀번호 검증 (평문 vs 암호화된 비밀번호 비교)
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new UserException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        return user;
+    }
 }
