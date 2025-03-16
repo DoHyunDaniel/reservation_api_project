@@ -20,6 +20,9 @@ public class CreateUser {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class Request {
+		@NotNull
+		private Long id;
+		
 	    @NotBlank
 	    @Size(min = 5, max = 20, message = "아이디는 5~20자로 입력하세요.")
 	    private String userId;
@@ -38,6 +41,10 @@ public class CreateUser {
 	    
 	    @NotNull
 	    private UserType userType;
+	    
+	    @NotNull
+	    @Size(max=20, message = "전화번호는 010-XXXX-XXXX 형식으로 입력해주세요.")
+	    private String phoneNumber;
 	}
 
 	@Getter
@@ -46,19 +53,23 @@ public class CreateUser {
 	@AllArgsConstructor
 	@Builder
 	public static class Response {
+		private Long id;
 		private String userId;
 		private String nickname;
 		private String email;
 		private UserType userType;
 		private LocalDateTime createdAt;
+		private String phoneNumber;
 
 		public static Response from(UserDto userDto) {
 			return Response.builder()
+					.id(userDto.getId())
 					.userId(userDto.getUserId())
 					.nickname(userDto.getNickname())
 					.userType(userDto.getUserType())
 					.email(userDto.getEmail())
 					.createdAt(userDto.getCreatedAt())
+					.phoneNumber(userDto.getPhoneNumber())
 					.build();
 		}
 	}

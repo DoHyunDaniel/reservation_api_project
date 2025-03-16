@@ -2,21 +2,22 @@ package com.reservation.domain;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-import com.reservation.type.UserType;
+import com.reservation.type.ReservationStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,39 +33,31 @@ import lombok.Setter;
 @EnableJpaAuditing
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "users")
-public class User {
+@Table(name = "reservations")
+public class Reservation {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-    @Column(name = "user_name", unique = true, nullable = false, length = 10) 
-    private String userId;
+	@ManyToOne(fetch= FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="store_id", nullable = false)
+	private Store store;
+	
+    @Column(name = "reservation_time", nullable = false)
+    private LocalDateTime reservationTime;
 
-    @Column(nullable = false, length = 10)
-    private String nickname;
-
-    @Column(nullable = false, length = 255) 
-    private String password;
-
-    @Column(name = "is_partner", nullable = false)
-    private boolean isPartner = false;
-
-    @CreatedDate  
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @LastModifiedDate
-    @Column(name = "updated_at", nullable = true, updatable = true)
-    private LocalDateTime updatedAt;
-    
-    @Enumerated(EnumType.STRING) 
-    @Column(name = "user_type", nullable = false)
-    private UserType userType; // 회원 유형 (ADMIN, OWNER, CUSTOMER)
-
-    @Column(unique = true, nullable = false, length = 50)  // 이메일 필드 추가
-    private String email;
-    
-    @Column(name="phone_number", nullable = false, length = 20)
+    @Column(name="phone_number", nullable = false)
     private String phoneNumber;
+    
+    @Enumerated(EnumType.STRING)  
+    @Column(nullable = false)
+    private ReservationStatus status;
+	
 }
