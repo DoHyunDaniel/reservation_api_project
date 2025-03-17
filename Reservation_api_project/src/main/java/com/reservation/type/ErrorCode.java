@@ -14,6 +14,6 @@ public enum ErrorCode {
 	USERTYPE_NOT_OWNER("파트너십 가입은 점주 계정만 할 수 있습니다."),
 	INVALID_PASSWORD("패스워드가 틀립니다."),
 	OWNER_NOT_FOUND("점주 정보를 찾을 수 없습니다."),
-	INVALID_ROLE("권한이 없습니다."), PHONE_NUMBER_ALREADY_IN_USE("이미 사용중인 전화번호입니다.");
+	INVALID_ROLE("권한이 없습니다."), PHONE_NUMBER_ALREADY_IN_USE("이미 사용중인 전화번호입니다."), NOT_PARTNER("파트너 점주님만 매장을 등록할 수 있습니다.");
 	private final String description;
 }

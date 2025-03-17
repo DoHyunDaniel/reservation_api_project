@@ -25,7 +25,7 @@ public class JwtTokenProvider {
 		this.expiration = expiration;
 	}
 
-	public String generateToken(Long userId, String role) {
+	public String generateToken(Long userId, String role, boolean isPartner) {
 		return Jwts.builder().setSubject(userId.toString()).claim("role", role).setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + expiration))
 				.signWith(key, SignatureAlgorithm.HS256).compact();
@@ -43,6 +43,7 @@ public class JwtTokenProvider {
 		return parseToken(token).get("role", String.class);
 	}
 	
+	
 	// JWT 토큰 검증
     public boolean validateToken(String token) {
         try {
@@ -52,4 +53,6 @@ public class JwtTokenProvider {
             return false;
         }
     }
+
+
 }

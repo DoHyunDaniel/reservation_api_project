@@ -32,11 +32,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtTokenProvider.validateToken(token)) {
             Claims claims = jwtTokenProvider.parseToken(token);
 
-            String username = claims.getSubject(); // JWT에서 사용자 ID 가져오기
+            String userId = claims.getSubject(); // JWT에서 사용자 ID 가져오기
             String role = claims.get("role", String.class); // 역할 가져오기
 
+            request.setAttribute("userId", Long.parseLong(userId));
+            
             UserDetails userDetails = User.builder()
-                    .username(username)
+                    .username(userId)
                     .password("")
                     .roles(role)
                     .build();

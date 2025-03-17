@@ -17,11 +17,12 @@ import com.reservation.dto.UpdateUserPartnership;
 import com.reservation.dto.UserDto;
 import com.reservation.service.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
@@ -33,21 +34,24 @@ public class UserController {
     }
     
 	@DeleteMapping("/delete")
-	public ResponseEntity<Response> deleteUser(@RequestBody @Valid DeleteUser.Request request) {
-        DeleteUser.Response response = userService.deleteUser(request);
+	public ResponseEntity<Response> deleteUser(@Valid @RequestBody DeleteUser.Request request, HttpServletRequest httpRequest) {
+		Long userId = (Long) httpRequest.getAttribute("userId");
+		DeleteUser.Response response = userService.deleteUser(userId, request);
         
         return ResponseEntity.ok(response);
 	}
 	
 	@PutMapping("/update")
-	public ResponseEntity<UpdateUser.Response> updateUser(@Valid @RequestBody UpdateUser.Request request) {
-        User updatedUser = userService.updateUser(request);
+	public ResponseEntity<UpdateUser.Response> updateUser(@Valid @RequestBody UpdateUser.Request request, HttpServletRequest httpRequest) {
+		Long userId = (Long) httpRequest.getAttribute("userId");
+		User updatedUser = userService.updateUser(userId, request);
         return ResponseEntity.ok(UpdateUser.Response.from(UserDto.fromEntity(updatedUser)));
     }
 	
 	@PutMapping("/updatePartnership")
-	public ResponseEntity<UpdateUserPartnership.Response> updateIsPartner(@Valid @RequestBody UpdateUserPartnership.Request request) {
-        User updatedUser = userService.updateIsPartner(request);
+	public ResponseEntity<UpdateUserPartnership.Response> updateIsPartner(@Valid @RequestBody UpdateUserPartnership.Request request,HttpServletRequest httpRequest) {
+		Long userId = (Long) httpRequest.getAttribute("userId");
+		User updatedUser = userService.updateIsPartner(userId, request);
         return ResponseEntity.ok(UpdateUserPartnership.Response.from(UserDto.fromEntity(updatedUser)));
     }
 }

@@ -23,26 +23,26 @@ public class CreateUser {
 		@NotNull
 		private Long id;
 		
-	    @NotBlank
+	    @NotBlank(message = "아이디는 필수 입력 항목입니다.")
 	    @Size(min = 5, max = 20, message = "아이디는 5~20자로 입력하세요.")
 	    private String userId;
 	    
-	    @NotBlank
+	    @NotBlank(message = "닉네임은 필수 입력 항목입니다.")
 	    @Size(min = 1, max = 10, message = "닉네임은 1~10자로 입력하세요.")
 	    private String nickname;
 	    
-	    @NotBlank
+	    @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
 	    @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
 	    private String password;
 	    
-	    @NotBlank
+	    @NotBlank(message = "이메일은 필수 입력 항목입니다.")
 	    @Email(message = "이메일 형식이 올바르지 않습니다.")
 	    private String email;
 	    
-	    @NotNull
+	    @NotNull(message = "가입자 유형은 필수 입력 항목입니다.")
 	    private UserType userType;
 	    
-	    @NotNull
+	    @NotNull(message = "전화번호는 필수 입력 항목입니다.")
 	    @Size(max=20, message = "전화번호는 010-XXXX-XXXX 형식으로 입력해주세요.")
 	    private String phoneNumber;
 	}

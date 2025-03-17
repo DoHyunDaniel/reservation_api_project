@@ -12,21 +12,25 @@ import com.reservation.dto.LoginResponse;
 import com.reservation.service.UserService;
 
 @RestController
-@RequestMapping("/api/users/auth")
+@RequestMapping("/users/auth")
 public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    
+    // 로그인시 jwt 토큰 제공
     public AuthController(UserService userService, JwtTokenProvider jwtTokenProvider) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    
+    // 로그인
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         var user = userService.validateUser(request.getEmail(), request.getPassword());
 
-        String token = jwtTokenProvider.generateToken(user.getId(), user.getUserType().toString());
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getUserType().toString(), user.isPartner());
         
         return ResponseEntity.ok(LoginResponse.from(token, user.getId(), user.getUserType().toString()));
     }
