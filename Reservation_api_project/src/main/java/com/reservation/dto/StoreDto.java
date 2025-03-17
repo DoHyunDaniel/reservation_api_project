@@ -24,6 +24,8 @@ public class StoreDto {
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	private Long ownerId;
+	private Double avgRating;
+	private Double distance;
 	
 	public static StoreDto fromEntity(Store store) {
 		return StoreDto.builder()

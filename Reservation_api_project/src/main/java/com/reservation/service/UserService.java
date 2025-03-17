@@ -2,10 +2,13 @@ package com.reservation.service;
 
 import static com.reservation.type.ErrorCode.CANNOT_CREATE_ADMIN;
 import static com.reservation.type.ErrorCode.EMAIL_ALREADY_IN_USE;
+import static com.reservation.type.ErrorCode.INVALID_PASSWORD;
 import static com.reservation.type.ErrorCode.PASSWORD_UNMATCHED;
 import static com.reservation.type.ErrorCode.USERID_ALREADY_IN_USE;
 import static com.reservation.type.ErrorCode.USERTYPE_NOT_OWNER;
 import static com.reservation.type.ErrorCode.USER_NOT_FOUND;
+import static com.reservation.type.UserType.ADMIN;
+import static com.reservation.type.UserType.OWNER;
 
 import java.util.Optional;
 
@@ -36,20 +39,23 @@ public class UserService {
 	@Transactional
 	public User createUser(CreateUser.Request request) {
 		
+		// 이미 사용중인 아이디
 		if(userRepository.existsByUserId(request.getUserId())) {
 			throw new UserException(USERID_ALREADY_IN_USE);
 		}
 		
+		// 이미 사용중인 이메일
 		if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException(EMAIL_ALREADY_IN_USE);
         }
 		
+		// 이미 사용중인 전화번호
 		if(userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
 			throw new UserException(ErrorCode.PHONE_NUMBER_ALREADY_IN_USE);
 		}
 		
 		// 관리자 계정으로는 생성 불가
-	    if(request.getUserType().equals("ADMIN")) {
+	    if(request.getUserType()==ADMIN) {
 	    	throw new UserException(CANNOT_CREATE_ADMIN);
 	    }
 		
@@ -66,8 +72,8 @@ public class UserService {
 	}
 	
 	@Transactional
-	public DeleteUser.Response deleteUser(DeleteUser.Request request) {
-		User user = userRepository.findById(request.getId()).orElseThrow(()-> new UserException(USER_NOT_FOUND));
+	public DeleteUser.Response deleteUser(Long userId, DeleteUser.Request request) {
+		User user = userRepository.findById(userId).orElseThrow(()-> new UserException(USER_NOT_FOUND));
 	    
 		// 비밀번호 확인
 	    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -84,15 +90,15 @@ public class UserService {
 	 * 비밀번호, 닉네임, 유저타입(점주, 일반)만 변경
 	 */
 	@Transactional
-	public User updateUser(UpdateUser.Request request) {
-		User user = userRepository.findById(request.getId()).orElseThrow(()->new UserException(USER_NOT_FOUND));
+	public User updateUser(Long userId, UpdateUser.Request request) {
+		User user = userRepository.findById(userId).orElseThrow(()->new UserException(USER_NOT_FOUND));
 		
 		// 비밀번호 확인
 	    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 	        throw new UserException(PASSWORD_UNMATCHED);
 	    }
 		// 관리자 계정으로는 생성 불가
-	    if(request.getUserType().equals("ADMIN")) {
+	    if(request.getUserType()==ADMIN) {
 	    	throw new UserException(CANNOT_CREATE_ADMIN);
 	    }
 	    
@@ -113,10 +119,12 @@ public class UserService {
 	 * 비밀번호 확인 후 파트너 여부 변경
 	 */
 	@Transactional
-	public User updateIsPartner(UpdateUserPartnership.Request request) {
-		User user = userRepository.findById(request.getId()).orElseThrow(()->new UserException(USER_NOT_FOUND));
+	public User updateIsPartner(Long userId, UpdateUserPartnership.Request request) {
 		
-		if(!user.getUserType().equals("OWNER")) {
+		User user = userRepository.findById(userId).orElseThrow(()->new UserException(USER_NOT_FOUND));
+		
+		// 사용자 유형이 OWNER가 아닐 경우 예외 발생
+		if(user.getUserType()!=OWNER) {
 			throw new UserException(USERTYPE_NOT_OWNER);
 		}
 		
@@ -125,8 +133,8 @@ public class UserService {
 	        throw new UserException(PASSWORD_UNMATCHED);
 	    }
 	    
-	    
 	    user.setPartner(true);
+	    userRepository.save(user);
 	    
 		return user;
 	}
@@ -136,14 +144,14 @@ public class UserService {
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
-            throw new UserException(ErrorCode.USER_NOT_FOUND);
+            throw new UserException(USER_NOT_FOUND);
         }
 
         User user = userOptional.get();
 
         // 비밀번호 검증 (평문 vs 암호화된 비밀번호 비교)
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new UserException(ErrorCode.INVALID_PASSWORD);
+            throw new UserException(INVALID_PASSWORD);
         }
 
         return user;
