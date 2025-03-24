@@ -27,6 +27,7 @@ public class UserDto {
     private LocalDateTime updatedAt;
     
     private UserType userType;
+    private String phoneNumber;
     
 	public static UserDto fromEntity(User user) {
 		return UserDto.builder()
@@ -38,6 +39,7 @@ public class UserDto {
 				.updatedAt(user.getUpdatedAt())
 				.userType(user.getUserType())
 				.email(user.getEmail())
+				.phoneNumber(user.getPhoneNumber())
 				.build();
 	}
 }
