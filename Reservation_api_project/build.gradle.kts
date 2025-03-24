@@ -37,6 +37,9 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("org.mockito:mockito-core")
+	testImplementation("org.mockito:mockito-junit-jupiter")
+	testImplementation("org.assertj:assertj-core:3.24.2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	
 	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
