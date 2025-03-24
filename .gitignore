@@ -106,3 +106,4 @@ test-output/
 # 캐시
 .gradle-task-cache
 
+".env" 
