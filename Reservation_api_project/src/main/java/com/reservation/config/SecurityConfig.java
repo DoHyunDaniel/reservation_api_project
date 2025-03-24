@@ -13,39 +13,59 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Spring Security 보안 설정 클래스
+ * - JWT 기반 인증 방식 적용
+ * - 사용자 권한(ROLE_USER, ROLE_OWNER, ROLE_ADMIN)에 따른 접근 제어
+ */
 @EnableWebSecurity
 @RequiredArgsConstructor
 @Configuration
 public class SecurityConfig {
-	
+
     private final JwtTokenProvider jwtTokenProvider;
-	
+
+    /**
+     * AuthenticationManager 빈 등록
+     * - Spring Security의 인증 관리 객체
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-    
-    
+
+    /**
+     * Spring Security 필터 체인 설정
+     * - 경로별 권한 설정, JWT 인증 필터 등록
+     * - 세션 사용하지 않고 Stateless 방식 적용
+     *
+     * @param http HttpSecurity 객체
+     * @return SecurityFilterChain
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-//            .authorizeHttpRequests(auth -> auth
-//                .anyRequest().permitAll() // 모든 요청 허용
-//            )
-            .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화 (테스트용)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안 함
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/users/auth/login", "/users/signup").permitAll() // 로그인 & 회원가입은 인증 없이 접근 가능
-                    .requestMatchers("/upload/**").permitAll()
-                    .requestMatchers("/stores/**").hasRole("OWNER") // 특정 API에 인증 필요
-                    .anyRequest().authenticated()
-                )
+                .requestMatchers("/users/auth/login", "/users/signup").permitAll()
+                .requestMatchers("/stores/list").permitAll()
+                .requestMatchers("/stores/register", "/stores/delete", "/stores/update").hasRole("OWNER")
+                .requestMatchers("/reservation/admin/**").hasRole("ADMIN")
+                .requestMatchers("/reservation/owner/**", "/reservation/confirm", "/reservation/check-in/**").hasRole("OWNER")
+                .requestMatchers("/reservation/**", "/reviews/**", "/upload/**").authenticated()
+                .anyRequest().authenticated()
+            )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
-            .formLogin(form -> form.disable()); // 로그인 페이지 비활성화
-        
+            .formLogin(form -> form.disable());
+
         return http.build();
     }
-    
+
+    /**
+     * 패스워드 인코더 Bean 등록
+     * - BCrypt 해시 알고리즘 사용
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

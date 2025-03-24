@@ -23,9 +23,18 @@ public class S3UploaderService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    
-    // S3버켓에 업로드
+    /**
+     * MultipartFile을 AWS S3 버킷에 업로드하는 메소드
+     * - 파일 이름은 UUID + 원본 파일명으로 구성됩니다.
+     * - 지정된 디렉토리(dirName) 하위에 저장됩니다.
+     *
+     * @param file 업로드할 MultipartFile
+     * @param dirName S3 내 저장 디렉토리 이름 (예: "reviews")
+     * @return 업로드된 파일의 전체 URL
+     * @throws RuntimeException 업로드 중 IOException 발생 시
+     */
     public String upload(MultipartFile file, String dirName) {
+        // 고유 파일명 생성
         String fileName = dirName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         try {
@@ -33,25 +42,29 @@ public class S3UploaderService {
             metadata.setContentLength(file.getSize());
             metadata.setContentType(file.getContentType());
 
-            // ACL 제거 (S3 버킷에서 ACL을 비허용할 경우)
+            // S3에 파일 업로드
             PutObjectRequest putObjectRequest = new PutObjectRequest(
                     bucket,
                     fileName,
                     file.getInputStream(),
                     metadata
             );
-            amazonS3.putObject(putObjectRequest);
 
+            amazonS3.putObject(putObjectRequest);
         } catch (IOException e) {
             throw new RuntimeException("S3 업로드 실패", e);
         }
 
+        // 업로드된 파일의 URL 반환
         return amazonS3.getUrl(bucket, fileName).toString();
     }
-    
-    // 삭제 기능
+
+    /**
+     * S3 버킷에서 지정된 파일을 삭제하는 메소드
+     *
+     * @param fileName 삭제할 파일의 경로 (예: "reviews/uuid_filename.jpg")
+     */
     public void delete(String fileName) {
         amazonS3.deleteObject(bucket, fileName);
     }
-
 }
