@@ -1,4 +1,6 @@
-
+<p align="center">
+  <img src="https://github.com/DoHyunDaniel/reservation_api_project/blob/main/logo.png?raw=true" width="200" alt="Reservation Service Logo" />
+</p>
 # 📌 Reservation Service - 예약 관리 시스템
 
 > 매장 예약, 리뷰, 점주 관리, 사용자 인증을 포함한 통합 예약 플랫폼  
