@@ -78,7 +78,7 @@ build/
 application-*.yml
 application-*.yaml
 application-*.properties
-
+src/main/resources/application.properties
 ### IntelliJ IDEA ###
 .idea/
 *.iml
