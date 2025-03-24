@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reservation.config.JwtTokenProvider;
-import com.reservation.dto.LoginRequest;
-import com.reservation.dto.LoginResponse;
+import com.reservation.dto.auth.LoginRequest;
+import com.reservation.dto.auth.LoginResponse;
 import com.reservation.service.UserService;
 
 @RestController

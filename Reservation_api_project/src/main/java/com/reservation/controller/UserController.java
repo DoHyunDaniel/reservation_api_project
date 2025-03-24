@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reservation.domain.User;
-import com.reservation.dto.CreateUser;
-import com.reservation.dto.DeleteUser;
-import com.reservation.dto.DeleteUser.Response;
-import com.reservation.dto.UpdateUser;
-import com.reservation.dto.UpdateUserPartnership;
 import com.reservation.dto.UserDto;
+import com.reservation.dto.store.UpdateStore;
+import com.reservation.dto.user.CreateUser;
+import com.reservation.dto.user.DeleteUser;
+import com.reservation.dto.user.UpdateUser;
+import com.reservation.dto.user.UpdateUserPartnership;
+import com.reservation.dto.user.DeleteUser.Response;
 import com.reservation.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +46,7 @@ public class UserController {
 	public ResponseEntity<UpdateUser.Response> updateUser(@Valid @RequestBody UpdateUser.Request request, HttpServletRequest httpRequest) {
 		Long userId = (Long) httpRequest.getAttribute("userId");
 		User updatedUser = userService.updateUser(userId, request);
-        return ResponseEntity.ok(UpdateUser.Response.from(UserDto.fromEntity(updatedUser)));
+        return ResponseEntity.ok(UpdateUser.Response.from(updatedUser));
     }
 	
 	@PutMapping("/updatePartnership")

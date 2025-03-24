@@ -1,23 +1,32 @@
 package com.reservation.service;
 
+import static com.reservation.type.ErrorCode.CANNOT_CREATE_ADMIN;
 import static com.reservation.type.ErrorCode.INVALID_ROLE;
 import static com.reservation.type.ErrorCode.NOT_PARTNER;
+import static com.reservation.type.ErrorCode.PASSWORD_UNMATCHED;
+import static com.reservation.type.ErrorCode.USER_NOT_FOUND;
+import static com.reservation.type.UserType.ADMIN;
 
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.reservation.domain.Store;
 import com.reservation.domain.User;
 import com.reservation.dto.StoreDto;
+import com.reservation.dto.store.DeleteStore;
+import com.reservation.dto.store.RegisterStore;
+import com.reservation.dto.store.UpdateStore;
 import com.reservation.exception.UserException;
 import com.reservation.repository.StoreRepository;
 import com.reservation.repository.UserRepository;
 import com.reservation.type.ErrorCode;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,9 +35,10 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final UserRepository userRepository;
     private final JdbcTemplate jdbcTemplate;
-
+	private final PasswordEncoder passwordEncoder;
+	
     @Transactional
-    public StoreDto registerStore(Long userId, StoreDto storeDto) {
+    public RegisterStore.Response registerStore(Long userId, StoreDto storeDto) {
         // 점주 정보 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(ErrorCode.OWNER_NOT_FOUND));
@@ -57,8 +67,34 @@ public class StoreService {
         // DB 저장
         Store savedStore = storeRepository.save(store);
 
-        return StoreDto.fromEntity(savedStore);
+        return RegisterStore.Response.fromEntity(savedStore);
     }
+    
+	@Transactional
+	public DeleteStore.Response deleteStore(Long userId, DeleteStore.Request request) {
+		
+		// Store테이블의 id로 확인
+		Store store = storeRepository.findById(request.getId()).orElseThrow(()-> new UserException(ErrorCode.STORE_NOT_FOUND));
+        
+		// 요청한 유저가 존재하는지 확인
+		User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(ErrorCode.OWNER_NOT_FOUND));
+
+		// 사용자가 해당 매장의 소유자인지 확인
+		if(!store.getOwner().getId().equals(userId)) {
+			throw new UserException(ErrorCode.INVALID_ROLE);
+		}
+		
+		// 비밀번호 확인
+	    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+	        throw new UserException(PASSWORD_UNMATCHED);
+	    }
+	    
+	    storeRepository.delete(store);
+	    
+	    return DeleteStore.Response.from(StoreDto.fromEntity(store));
+	
+	}
     
     // 상점 목록을 동적으로 정렬해주는 메소드
     // 거리는 Haversine 공식을 통해 구하기
@@ -102,4 +138,38 @@ public class StoreService {
             .distance(rs.getDouble("distance"))
             .build();
     }
+
+    @Transactional
+    public Store updateStore(Long userId, @Valid UpdateStore.Request request) {
+        // Store테이블의 id로 확인
+        Store store = storeRepository.findById(request.getId())
+                .orElseThrow(() -> new UserException(ErrorCode.STORE_NOT_FOUND));
+
+        // 요청한 유저가 존재하는지 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException(ErrorCode.OWNER_NOT_FOUND));
+
+        // 사용자가 해당 매장의 소유자인지 확인
+        if (!store.getOwner().getId().equals(userId)) {
+            throw new UserException(ErrorCode.INVALID_ROLE);
+        }
+
+        // 비밀번호 확인
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserException(PASSWORD_UNMATCHED);
+        }
+
+        // 관리자 계정으로는 생성 불가
+        if (request.getUserType() == ADMIN) {
+            throw new UserException(CANNOT_CREATE_ADMIN);
+        }
+
+        store.setStoreName(request.getStoreName());
+        store.setLat(request.getLat());
+        store.setLng(request.getLng());
+        store.setDetail(request.getDetail());
+
+        return store;
+    }
+
 }

@@ -16,11 +16,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.reservation.domain.User;
-import com.reservation.dto.CreateUser;
-import com.reservation.dto.DeleteUser;
-import com.reservation.dto.UpdateUser;
-import com.reservation.dto.UpdateUserPartnership;
 import com.reservation.dto.UserDto;
+import com.reservation.dto.store.UpdateStore;
+import com.reservation.dto.user.CreateUser;
+import com.reservation.dto.user.DeleteUser;
+import com.reservation.dto.user.UpdateUser;
+import com.reservation.dto.user.UpdateUserPartnership;
 import com.reservation.exception.UserException;
 import com.reservation.repository.UserRepository;
 import com.reservation.type.ErrorCode;

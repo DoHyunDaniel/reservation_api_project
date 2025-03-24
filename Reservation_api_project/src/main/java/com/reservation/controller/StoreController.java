@@ -1,27 +1,30 @@
 package com.reservation.controller;
 
-import static com.reservation.type.ErrorCode.INVALID_ROLE;
-import static com.reservation.type.ErrorCode.NOT_PARTNER;
-
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reservation.config.JwtTokenProvider;
+import com.reservation.domain.Store;
 import com.reservation.domain.User;
+import com.reservation.dto.store.DeleteStore;
+import com.reservation.dto.store.RegisterStore;
+import com.reservation.dto.store.UpdateStore;
+import com.reservation.dto.store.DeleteStore.Response;
 import com.reservation.dto.StoreDto;
-import com.reservation.exception.UserException;
-import com.reservation.repository.UserRepository;
+import com.reservation.dto.UserDto;
 import com.reservation.service.StoreService;
-import com.reservation.type.ErrorCode;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/stores")
@@ -34,8 +37,8 @@ public class StoreController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    @PostMapping("/registerStore")
-    public ResponseEntity<StoreDto> registerStore(
+    @PostMapping("/register")
+    public ResponseEntity<RegisterStore.Response> registerStore(
             @RequestBody StoreDto storeDto,
             HttpServletRequest request){
         
@@ -45,9 +48,29 @@ public class StoreController {
         String role = jwtTokenProvider.getUserRoleFromToken(token);
 
         // 매장 등록 수행
-        StoreDto registeredStore = storeService.registerStore(userId, storeDto);
+        RegisterStore.Response registeredStore = storeService.registerStore(userId, storeDto);
         return ResponseEntity.ok(registeredStore);
     }
+    
+	@DeleteMapping("/delete")
+	public ResponseEntity<Response> deleteStore(@Valid @RequestBody DeleteStore.Request request, HttpServletRequest httpRequest) {
+		Long userId = (Long) httpRequest.getAttribute("userId");
+		DeleteStore.Response response = storeService.deleteStore(userId, request);
+        
+        return ResponseEntity.ok(response);
+	}
+	
+	@PutMapping("/update")
+	public ResponseEntity<UpdateStore.Response> updateStore(
+	        @Valid @RequestBody UpdateStore.Request request,
+	        HttpServletRequest httpRequest) {
+
+	    Long userId = (Long) httpRequest.getAttribute("userId");
+	    Store updatedStore = storeService.updateStore(userId, request);
+	    return ResponseEntity.ok(UpdateStore.Response.fromEntity(updatedStore));
+	}
+
+	
     
     @GetMapping("/list")
     public ResponseEntity<List<StoreDto>> getStoreList(

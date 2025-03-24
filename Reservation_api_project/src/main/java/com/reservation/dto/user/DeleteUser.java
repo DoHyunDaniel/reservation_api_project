@@ -1,6 +1,8 @@
-package com.reservation.dto;
+package com.reservation.dto.user;
 
 import java.time.LocalDateTime;
+
+import com.reservation.dto.UserDto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

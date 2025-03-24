@@ -1,4 +1,4 @@
-package com.reservation.dto;
+package com.reservation.dto.auth;
 
 import lombok.Builder;
 import lombok.Getter;

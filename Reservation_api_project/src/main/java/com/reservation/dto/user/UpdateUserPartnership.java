@@ -1,7 +1,8 @@
-package com.reservation.dto;
+package com.reservation.dto.user;
 
 import java.time.LocalDateTime;
 
+import com.reservation.dto.UserDto;
 import com.reservation.type.UserType;
 
 import jakarta.validation.constraints.Email;
