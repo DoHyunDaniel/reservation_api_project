@@ -62,4 +62,69 @@ public class ReviewService {
 		return CreateReview.Response.fromEntity(savedReview, imageUrls);
 	}
 
+	// 리뷰 삭제 로직
+	@Transactional
+	public void deleteReview(Long reviewId, Long userId) {
+	    Review review = reviewRepository.findById(reviewId)
+	            .orElseThrow(() -> new ReviewException(ErrorCode.REVIEW_NOT_FOUND));
+
+	    // 사용자 권한 확인
+	    if (!review.getUser().getId().equals(userId)) {
+	        throw new ReviewException(ErrorCode.UNAUTHORIZED_REVIEW_ACCESS);
+	    }
+
+	    // 이미지 먼저 S3 및 DB에서 삭제
+	    List<ReviewImage> images = reviewImageRepository.findByReviewId(reviewId);
+	    for (ReviewImage image : images) {
+	        String fileName = extractFileNameFromUrl(image.getImageUrl());
+	        s3UploaderService.delete(fileName);
+	        reviewImageRepository.delete(image);
+	    }
+
+	    // 리뷰 삭제
+	    reviewRepository.delete(review);
+	}
+
+	private String extractFileNameFromUrl(String imageUrl) {
+	    return imageUrl.substring(imageUrl.indexOf("reviews/")); // 경로만 추출
+	}
+	
+	
+	// 리뷰 수정 기능	
+	@Transactional
+	public void updateReview(Long reviewId, Long userId, int newRating, String newContent, List<MultipartFile> newImages) throws IOException {
+	    Review review = reviewRepository.findById(reviewId)
+	            .orElseThrow(() -> new ReviewException(ErrorCode.REVIEW_NOT_FOUND));
+
+	    if (!review.getUser().getId().equals(userId)) {
+	        throw new ReviewException(ErrorCode.UNAUTHORIZED_REVIEW_ACCESS);
+	    }
+
+	    // 리뷰 내용 업데이트
+	    review.setRating(newRating);
+	    review.setContent(newContent);
+	    review.setUpdatedAt(LocalDateTime.now());
+
+	    // 기존 이미지 삭제 (S3 + DB)
+	    List<ReviewImage> existingImages = reviewImageRepository.findByReviewId(reviewId);
+	    for (ReviewImage image : existingImages) {
+	        String fileName = extractFileNameFromUrl(image.getImageUrl());
+	        s3UploaderService.delete(fileName);
+	        reviewImageRepository.delete(image);
+	    }
+
+	    // 새 이미지 업로드
+	    if (newImages != null) {
+	        for (MultipartFile file : newImages) {
+	            String newUrl = s3UploaderService.upload(file, "reviews");
+				reviewImageRepository.save(ReviewImage.builder()
+				        .review(review)
+				        .imageUrl(newUrl)
+				        .build());
+	        }
+	    }
+	}
+
+
+
 }

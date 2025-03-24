@@ -26,9 +26,16 @@ public enum ErrorCode {
 	RESERVATION_NOT_FOUND("해당 예약을 찾을 수 없습니다."), 
 	DUPLICATE_RESERVATION("중복된 예약 요청입니다."), 
 	UNAUTHORIZED("권한이 없습니다."), 
-	INVALID_RESERVATION_STATUS("이미 처리된 예약입니다."), UNAUTHORIZED_REVIEW_ACCESS("권한이 없습니다."), 
-	
+	INVALID_RESERVATION_STATUS("확인할 수 없는 예약 상태입니다."), 
+	UNAUTHORIZED_REVIEW_ACCESS("권한이 없습니다."), 
+	UNAUTHORIZED_RESERVATION_ACCESS("예약자와 방문자의 정보가 다릅니다."), 
+	ALREADY_CHECKED_IN("이미 방문이 완료된 예약 건입니다."),
+	TOO_EARLY_TO_CHECK_IN("예약 10분 전부터 체크인이 가능합니다."),
+	NOT_IN_CHECKIN_WINDOW("입점 시간은 예약 시간 10분 전, 예약 시간 10분 후까지 가능합니다."),
+
 	// 리뷰 등록 관련
-	IMAGE_UPLOAD_FAILED("이미지 업로드에 실패했습니다.");
+	IMAGE_UPLOAD_FAILED("이미지 업로드에 실패했습니다."), 
+	REVIEW_IMAGE_NOT_FOUND("해당 이미지를 찾을 수 없습니다."), 
+	REVIEW_NOT_FOUND("해당 리뷰를 찾을 수 없습니다.");
 	private final String description;
 }

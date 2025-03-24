@@ -2,13 +2,16 @@ package com.reservation.domain;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.annotation.Id;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -18,9 +21,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@EnableJpaAuditing
 @Entity
+@EntityListeners(AuditingEntityListener.class)
+@Getter 
+@Setter 
+@NoArgsConstructor 
+@AllArgsConstructor 
+@Builder
 @Table(name = "reviews")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

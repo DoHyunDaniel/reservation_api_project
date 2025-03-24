@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -100,6 +101,14 @@ public class ReservationController {
 
 	    ConfirmReservation.Response response = reservationService.confirmReservation(ownerId, request);
 	    return ResponseEntity.ok(response);
+	}
+
+	// 점주가 방문을 확인하는 기능
+	@PutMapping("/check-in/{reservationId}")
+	public ResponseEntity<?> checkInReservation(@PathVariable Long reservationId, HttpServletRequest request) {
+	    Long userId = (Long) request.getAttribute("userId");
+	    reservationService.checkInReservation(userId, reservationId);
+	    return ResponseEntity.ok("체크인 완료");
 	}
 
 	

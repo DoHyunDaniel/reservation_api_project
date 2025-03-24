@@ -53,11 +53,15 @@ public class Reservation {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
+    @Column(name = "updated_at", nullable = false, updatable = false)
+    private LocalDateTime updatedAt;
+    
     @Column(name="phone_number", nullable = false)
     private String phoneNumber;
     
     @Enumerated(EnumType.STRING)  
     @Column(nullable = false)
     private ReservationStatus status;
+
 	
 }

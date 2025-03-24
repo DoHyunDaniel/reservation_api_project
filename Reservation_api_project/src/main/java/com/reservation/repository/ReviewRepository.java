@@ -7,7 +7,7 @@ import com.reservation.domain.Reservation;
 import com.reservation.domain.Review;
 
 @Repository
-public interface ReviewRepository extends JpaRepository<Reservation, Long>{
+public interface ReviewRepository extends JpaRepository<Review, Long>{
 	// 리뷰 저장 기능
 	Review save(Review review);
 	

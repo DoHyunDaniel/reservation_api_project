@@ -23,6 +23,8 @@ public class S3UploaderService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    
+    // S3버켓에 업로드
     public String upload(MultipartFile file, String dirName) {
         String fileName = dirName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
@@ -31,8 +33,14 @@ public class S3UploaderService {
             metadata.setContentLength(file.getSize());
             metadata.setContentType(file.getContentType());
 
-            amazonS3.putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), metadata)
-                    .withCannedAcl(CannedAccessControlList.PublicRead));
+            // ACL 제거 (S3 버킷에서 ACL을 비허용할 경우)
+            PutObjectRequest putObjectRequest = new PutObjectRequest(
+                    bucket,
+                    fileName,
+                    file.getInputStream(),
+                    metadata
+            );
+            amazonS3.putObject(putObjectRequest);
 
         } catch (IOException e) {
             throw new RuntimeException("S3 업로드 실패", e);
@@ -40,4 +48,10 @@ public class S3UploaderService {
 
         return amazonS3.getUrl(bucket, fileName).toString();
     }
+    
+    // 삭제 기능
+    public void delete(String fileName) {
+        amazonS3.deleteObject(bucket, fileName);
+    }
+
 }

@@ -53,6 +53,8 @@ public class ReservationService {
 		return CreateReservation.Response.fromEntity(reservationRepository.save(reservation));
 	}
 
+	
+	// ID에 따라 예약 목록을 조회하는 메소드
 	@Transactional(readOnly = true)
 	public List<ReservationDto> getReservationsByUserId(Long userId) {
 	    List<Reservation> reservations = reservationRepository.findByUserId(userId).stream()
@@ -119,6 +121,42 @@ public class ReservationService {
 	            .status(reservation.getStatus())
 	            .build();
 	}
+	
+	
+	// 점주가 방문을 확인하는 메소드
+	@Transactional
+	public void checkInReservation(Long userId, Long reservationId) {
+	    Reservation reservation = reservationRepository.findById(reservationId)
+	        .orElseThrow(() -> new ReservationException(ErrorCode.RESERVATION_NOT_FOUND));
+
+	    if (!reservation.getUser().getId().equals(userId)) {
+	        throw new ReservationException(ErrorCode.UNAUTHORIZED_RESERVATION_ACCESS);
+	    }
+
+	    if (reservation.getStatus() == ReservationStatus.CHECKED_IN) {
+	        throw new ReservationException(ErrorCode.ALREADY_CHECKED_IN);
+	    }
+
+	    if (reservation.getStatus() == ReservationStatus.REJECTED || reservation.getStatus() == ReservationStatus.CANCELED) {
+	        throw new ReservationException(ErrorCode.INVALID_RESERVATION_STATUS);
+	    }
+
+	    // 예약 10분 전에 도착하면 에러 메세지
+	    LocalDateTime now = LocalDateTime.now();
+	    LocalDateTime reservationTime = reservation.getReservationTime();
+
+	    LocalDateTime checkInStart = reservationTime.minusMinutes(10);
+	    LocalDateTime checkInEnd = reservationTime.plusMinutes(10);
+
+	    if (now.isBefore(checkInStart) || now.isAfter(checkInEnd)) {
+	        throw new ReservationException(ErrorCode.NOT_IN_CHECKIN_WINDOW);
+	    }
+
+
+	    reservation.setStatus(ReservationStatus.CHECKED_IN);
+	    reservation.setUpdatedAt(now);
+	}
+
 	
 	// 상태가 'PENDING'인 예약만 조회
 	public List<ReservationDto> getPendingReservationsForOwner(Long ownerId) {
