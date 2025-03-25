@@ -79,6 +79,7 @@ application-*.yml
 application-*.yaml
 application-*.properties
 src/main/resources/application.properties
+src/main/resources/.env
 ### IntelliJ IDEA ###
 .idea/
 *.iml
